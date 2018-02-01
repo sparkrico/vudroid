@@ -1,0 +1,105 @@
+apply plugin: 'com.android.library'
+
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+def siteUrl = 'https://github.com/sparkrico/vudroid' //项目在github主页地址
+def gitUrl = 'https://github.com/sparkrico/vudroid.git'   //Git仓库的地址
+
+group = "org.vudroid"//发布aar前缀根节点
+version = "1.4.0"//发布aar的库版本
+
+android {
+    compileSdkVersion 26
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.4.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                name 'vudroid'//添加项目描述
+                url siteUrl
+                licenses {
+                    license {
+                        name 'GPL-3.0'
+                        url 'http://www.gnu.org/licenses/gpl-3.0.en.html'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'sparkrico'//设置自己ID
+                        name 'sparkrico'//设置自己名字
+                        email 'sparkrico@gmail.com'//设置自己邮箱
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    configurations = ['archives']
+    pkg {
+        repo = "vudroid"
+        name = "vudroid" //项目在JCenter的名字
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["GPL-3.0"]
+        publish = true
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+}
